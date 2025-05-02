@@ -91,5 +91,5 @@ In effect, this is a **best-first search strategy**, which is optimal for kNN in
 
 ```bash
 g++ k_nearest_neighbors.cpp -o k_nearest_neighbors.out
-./k_nearest_neighbors.out Rtree.txt knqueries.txt 10
+./k_nearest_neighbors.out Rtree.txt knqueries.txt <k_nearest_neighbors>
 ```
