@@ -1,17 +1,38 @@
+/**
+ * This program performs various relational algebra operations (merge join, union, intersection,
+ * difference, group-by with aggregation) on TSV files. The files are assumed to be sorted on the key
+ * (first column). Outputs are written to new TSV files.
+ *
+ * Usage:
+ *   ./a.out <R_sorted.tsv> <S_sorted.tsv> <R.tsv>
+ *
+ * The operations performed:
+ *   - Merge Join: Joins R and S on the key.
+ *   - Union: Produces the union of R and S without duplicates.
+ *   - Intersection: Finds common rows between R and S.
+ *   - Difference: Computes R - S.
+ *   - Group-By: Groups R by key and sums the integer values.
+ *
+ * The Record struct represents a row with:
+ *   - column_1: key (std::string)
+ *   - column_2: value (int)
+ */
+
+
+
 #include <algorithm>
 #include <iostream>
 #include <fstream>
 #include <array>
-#include <sstream>
 #include <vector>
 
-// Declarations
+
 struct Record {
     std::string column_1;
     int column_2;
 };
 
-// Prototypes
+
 void merge_join(const std::string& r_file_name , const std::string& s_file_name, const std::string& join_file_name);
 void union_(const std::string& r_file_name , const std::string& s_file_name, const std::string& union_file_name);
 void intersection(const std::string& r_file_name , const std::string& s_file_name, const std::string& intersection_file_name);
@@ -43,7 +64,15 @@ int main(int argc, char *argv[]) {
 }
 
 
-//Function Implementations
+
+
+/**
+ * Performs a merge join operation between two sorted TSV files on their first column (key).
+ * Creates all possible combinations of rows when multiple rows share the same key.
+ * @param r_file_name Path to the first sorted TSV file (R)
+ * @param s_file_name Path to the second sorted TSV file (S)
+ * @param join_file_name Path where the join result will be saved
+ */
 void merge_join(const std::string& r_file_name , const std::string& s_file_name, const std::string& join_file_name) {
     std::ifstream r_sorted(r_file_name);
     std::ifstream s_sorted(s_file_name);
@@ -124,6 +153,13 @@ void merge_join(const std::string& r_file_name , const std::string& s_file_name,
     std::cout << "--------" << std::endl;
 }
 
+/**
+ * Performs a set union operation between two sorted TSV files.
+ * Eliminates duplicates in the result.
+ * @param r_file_name Path to the first sorted TSV file (R)
+ * @param s_file_name Path to the second sorted TSV file (S)
+ * @param union_file_name Path where the union result will be saved
+ */
 void union_(const std::string& r_file_name , const std::string& s_file_name, const std::string& union_file_name) {
     std::ifstream r_sorted(r_file_name);
     std::ifstream s_sorted(s_file_name);
@@ -166,12 +202,12 @@ void union_(const std::string& r_file_name , const std::string& s_file_name, con
 
         }
         else if(r_read_success) {
-            //s is finished at this point so we add all the r records left.
+            //s is finished at this point, so we add all the r records left.
             record_to_write = r_line;
             r_read_success = static_cast<bool>(std::getline(r_sorted, r_line));
         }
         else {
-            //r is finished at this point so we add all the s records left.
+            //r is finished at this point, so we add all the s records left.
             record_to_write = s_line;
             s_read_success = static_cast<bool>(std::getline(s_sorted, s_line));
         }
@@ -186,6 +222,13 @@ void union_(const std::string& r_file_name , const std::string& s_file_name, con
     std::cout << "--------" << std::endl;
 }
 
+/**
+ * Finds common records between two sorted TSV files.
+ * Eliminates duplicates in the result.
+ * @param r_file_name Path to the first sorted TSV file (R)
+ * @param s_file_name Path to the second sorted TSV file (S)
+ * @param intersection_file_name Path where the intersection result will be saved
+ */
 void intersection(const std::string& r_file_name , const std::string& s_file_name, const std::string& intersection_file_name) {
     std::ifstream r_sorted(r_file_name);
     std::ifstream s_sorted(s_file_name);
@@ -208,10 +251,10 @@ void intersection(const std::string& r_file_name , const std::string& s_file_nam
     while(r_read_success && s_read_success) {
 
         if(r_line < s_line) {
-            //not common record. Advance r
+            //Not a common record. Advance r
             r_read_success = static_cast<bool>(std::getline(r_sorted, r_line));
         }else if(r_line > s_line) {
-            //not common record. advance s
+            //not a common record. advance s
             s_read_success = static_cast<bool>(std::getline(s_sorted, s_line));
         }else {
             // Ensure no duplicate records are added.
@@ -221,7 +264,7 @@ void intersection(const std::string& r_file_name , const std::string& s_file_nam
                 last_written_record = r_line;
             }
 
-            //after adding the common record advance both.
+            //after adding the common record, advance both.
             r_read_success = static_cast<bool>(std::getline(r_sorted, r_line));
             s_read_success = static_cast<bool>(std::getline(s_sorted, s_line));
         }
@@ -231,6 +274,13 @@ void intersection(const std::string& r_file_name , const std::string& s_file_nam
     std::cout << "--------" << std::endl;
 }
 
+/**
+ * Computes the set difference R - S between two sorted TSV files.
+ * Returns records that exist in R but not in S.
+ * @param r_file_name Path to the first sorted TSV file (R)
+ * @param s_file_name Path to the second sorted TSV file (S)
+ * @param difference_file_name Path where the difference result will be saved
+ */
 void R_difference_S(const std::string& r_file_name , const std::string& s_file_name, const std::string& difference_file_name) {
     std::ifstream r_sorted(r_file_name);
     std::ifstream s_sorted(s_file_name);
@@ -251,7 +301,7 @@ void R_difference_S(const std::string& r_file_name , const std::string& s_file_n
     while(r_read_succeed) {
         //if s is empty or s record != r record
         if(!s_read_succeed || r_line < s_line) {
-            // add r record.
+            // Add r record.
             // Ensure no duplicate records are added.
             // Duplicate records appear consecutively, so comparing with the last written record is enough.
             if(r_line != last_written_record) {
@@ -274,6 +324,12 @@ void R_difference_S(const std::string& r_file_name , const std::string& s_file_n
     std::cout << "--------" << std::endl;
 }
 
+/**
+ * Groups records by the first column and sums the second column values.
+ * Uses merge sort for sorting and aggregation.
+ * @param r_file_name Path to the input TSV file
+ * @param groupBy_with_sum_file Path where the grouped and aggregated result will be saved
+ */
 void groupBy_with_aggregation(const std::string& r_file_name , const std::string& groupBy_with_sum_file) {
     std::ifstream r_file(r_file_name);
     std::ofstream groupBy_with_sum(groupBy_with_sum_file);
@@ -304,6 +360,13 @@ void groupBy_with_aggregation(const std::string& r_file_name , const std::string
     std::cout << "--------" << std::endl;;
 }
 
+/**
+ * Implements merge sort algorithm for Records.
+ * Used by groupBy_with_aggregation to sort records by key.
+ * @param begin Iterator to the beginning of the range to sort
+ * @param end Iterator to the end of the range to sort
+ * @return Sorted vector of Records
+ */
 std::vector<Record> merge_sort(const std::vector<Record>::const_iterator begin, const std::vector<Record>::const_iterator end) {
     if (std::distance(begin, end) <= 1)
         return std::vector(begin, end);
@@ -315,6 +378,13 @@ std::vector<Record> merge_sort(const std::vector<Record>::const_iterator begin, 
     return merge_with_aggregation(left, right);
 }
 
+/**
+ * Merges two sorted vectors of Records while aggregating values for identical keys.
+ * Used by merge_sort to combine sorted sub-arrays.
+ * @param left First sorted vector of Records
+ * @param right Second sorted vector of Records
+ * @return Merged and aggregated vector of Records
+ */
 std::vector<Record> merge_with_aggregation(const std::vector<Record>& left, const std::vector<Record>& right) {
     std::vector<Record> merged;
     size_t i = 0, j = 0;
@@ -338,11 +408,11 @@ std::vector<Record> merge_with_aggregation(const std::vector<Record>& left, cons
         }
     }
 
-    //if left list has records
+    //if the left list has records
     if(i < left.size()) {
         merged.insert(merged.end(), left.begin() + i, left.end());
     }
-    //if right list has records
+    //if the right list has records
     if(j < right.size()) {
         merged.insert(merged.end(), right.begin() + j, right.end());
     }
