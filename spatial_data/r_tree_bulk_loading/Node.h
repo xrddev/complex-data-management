@@ -1,12 +1,10 @@
 #ifndef NODE_H
 #define NODE_H
 #include <algorithm>
-#include <ranges>
 #include <array>
 #include <cstdint>
 #include <fstream>
 #include <iomanip>
-#include <iostream>
 #include <memory>
 #include <sstream>
 
@@ -56,14 +54,14 @@ public:
     }
 };
 
-class LeafNode {
+class Node {
 public:
     int node_id;
     MBR mbr;
 
-    LeafNode(const int id, const MBR& mbr) : node_id(id), mbr(mbr) {}
+    Node(const int id, const MBR& mbr) : node_id(id), mbr(mbr) {}
 
-    virtual ~LeafNode() = default;
+    virtual ~Node() = default;
 
     [[nodiscard]] virtual std::string toString() const {
         std::ostringstream oss;
@@ -72,13 +70,13 @@ public:
     }
 };
 
-class InternalNode final : public LeafNode {
+class InternalNode final : public Node {
 public:
     bool children_are_leafs;
-    std::vector<std::shared_ptr<LeafNode>> children;
+    std::vector<std::shared_ptr<Node>> children;
 
     InternalNode(int id, const MBR& mbr, bool childrenAreLeafs)
-        : LeafNode(id, mbr), children_are_leafs(childrenAreLeafs) {}
+        : Node(id, mbr), children_are_leafs(childrenAreLeafs) {}
 
     [[nodiscard]] std::string toString() const override {
         std::ostringstream oss;

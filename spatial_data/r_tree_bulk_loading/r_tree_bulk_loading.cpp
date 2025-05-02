@@ -14,7 +14,8 @@
  */
 
 
-#include "LeafNode.h"
+#include <iostream>
+#include "Node.h"
 
 
 /**
@@ -40,10 +41,10 @@ std::vector<Point> readCoords(const std::string& filename);
 std::vector<OffsetRecord> readOffsets(const std::string& filename);
 void update_z_value_to_entries(std::vector<Entry>& entries, const std::string& filename);
 void sortEntriesByZValue(std::vector<Entry>& entries);
-std::vector<std::shared_ptr<LeafNode>> create_upper_level(const std::vector<std::shared_ptr<LeafNode>>& nodes, int &node_id);
+std::vector<std::shared_ptr<Node>> create_upper_level(const std::vector<std::shared_ptr<Node>>& nodes, int &node_id);
 void generate_z_value(std::vector<Entry>& entries);
-std::vector<std::shared_ptr<LeafNode>> build_leaf_nodes(const std::vector<Entry>& entries);
-std::shared_ptr<InternalNode> build_tree(std::vector<std::shared_ptr<LeafNode>>& nodes);
+std::vector<std::shared_ptr<Node>> build_leaf_nodes(const std::vector<Entry>& entries);
+std::shared_ptr<InternalNode> build_tree(std::vector<std::shared_ptr<Node>>& nodes);
 std::string calculate_MBRs_centers(const std::vector<Entry>& entries);
 
 
@@ -59,7 +60,7 @@ int main(const int argc, char* argv[]) {
     generate_z_value(entries);
     sortEntriesByZValue(entries);
 
-    std::vector<std::shared_ptr<LeafNode>> leaf_nodes = build_leaf_nodes(entries);
+    std::vector<std::shared_ptr<Node>> leaf_nodes = build_leaf_nodes(entries);
     std::shared_ptr<InternalNode> root = build_tree(leaf_nodes);
     return 0;
 }
@@ -257,10 +258,10 @@ void sortEntriesByZValue(std::vector<Entry>& entries) {
  * @param entries Vector of entries to convert to leaf nodes
  * @return Vector of leaf node pointers
  */
-std::vector<std::shared_ptr<LeafNode>> build_leaf_nodes(const std::vector<Entry>& entries) {
-    std::vector<std::shared_ptr<LeafNode>> leaf_nodes;
+std::vector<std::shared_ptr<Node>> build_leaf_nodes(const std::vector<Entry>& entries) {
+    std::vector<std::shared_ptr<Node>> leaf_nodes;
     for (const auto& entry : entries) {
-        auto leaf_node = std::make_shared<LeafNode>(entry.id, entry.mbr);
+        auto leaf_node = std::make_shared<Node>(entry.id, entry.mbr);
         leaf_nodes.push_back(leaf_node);
     }
     return leaf_nodes;
@@ -272,7 +273,7 @@ std::vector<std::shared_ptr<LeafNode>> build_leaf_nodes(const std::vector<Entry>
  * @return Pointer to the root node of the tree
  * @throw Exits with error if an output file cannot be opened
  */
-std::shared_ptr<InternalNode> build_tree(std::vector<std::shared_ptr<LeafNode>>& nodes) {
+std::shared_ptr<InternalNode> build_tree(std::vector<std::shared_ptr<Node>>& nodes) {
     std::ofstream outfile("Rtree.txt");
     if (!outfile.is_open()) {
         std::cerr << "Failed to open Rtree.txt for writing!\n";
@@ -299,8 +300,8 @@ std::shared_ptr<InternalNode> build_tree(std::vector<std::shared_ptr<LeafNode>>&
  * @param node_id Reference to current node ID counter
  * @return Vector of nodes forming the upper level
  */
-std::vector<std::shared_ptr<LeafNode>> create_upper_level(const std::vector<std::shared_ptr<LeafNode>>& nodes, int &node_id) {
-    std::vector<std::shared_ptr<LeafNode>> upper_level_nodes;
+std::vector<std::shared_ptr<Node>> create_upper_level(const std::vector<std::shared_ptr<Node>>& nodes, int &node_id) {
+    std::vector<std::shared_ptr<Node>> upper_level_nodes;
     constexpr int MAX_CHILDREN_PER_NODE = 20;
     constexpr int MIN_CHILDREN_PER_NODE = 8;
     const size_t number_of_full_nodes = nodes.size() / MAX_CHILDREN_PER_NODE;
