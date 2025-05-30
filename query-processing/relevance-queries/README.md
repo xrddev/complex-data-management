@@ -26,7 +26,7 @@ This project requires a C++20-compliant compiler.
 
 Compile with:
 
-    g++ -std=c++20 -O2 relevance_queries.cpp -o relevance_processor
+    g++ -std=c++20 -O1 main.cpp
 
 Note:
 Compilation requires Boost.Multiprecision for TRF-weighted ranking and
@@ -36,7 +36,7 @@ C++20 features such as `std::ranges`.
 
 Run with:
 
-    ./relevance_processor transactions.txt queries.txt <query_number> <method_number> <top_k>
+    ./a.out transactions.txt queries.txt <query_number> <method_number> <top_k>
 
 Arguments:
 
