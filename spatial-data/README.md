@@ -70,5 +70,13 @@ Make sure to start with the `r_tree_bulk_loading` module to generate `Rtree.txt`
 
 - **C++17 or later**
 - **Python 3** (required only for the Z-order script in the bulk loading module)
-
+- 
 ---
+## 👤 Author
+
+> GitHub: [xrddev](https://github.com/xrddev)
+
+
+## 📝 License
+
+Released under the [MIT License](LICENSE). Originally built as part of a university project.
