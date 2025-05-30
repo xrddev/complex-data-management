@@ -29,7 +29,7 @@ g++ -std=c++17 -O2 main.cpp -o query_processor
 ### ▶️ Execute
 
 ```bash
-./query_processor transactions.txt queries.txt <query_number> <method_number>
+./a.out transactions.txt queries.txt <query_number> <method_number>
 ```
 
 Arguments:
@@ -144,4 +144,5 @@ These files help with debugging, inspection, or offline analysis.
 
 ## 📝 License
 
-This project is licensed under the [MIT License](LICENSE).
+Released under the [MIT License](LICENSE). Originally built as part of a university project.
+
