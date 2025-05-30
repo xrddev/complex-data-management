@@ -1,110 +1,144 @@
-# Complex Data Management
+# 📊 Relational Algebra Operations on TSV Files in C++
 
-## Assignment 1: Implementation of Relational Operators
+This project implements **five relational algebra operations** for TSV-formatted datasets, written in modern C++.
+All operations (except group-by) are designed to run in a **streaming manner**,
+processing files line-by-line **without loading them entirely into memory**,
+making them highly efficient for large datasets.
 
----
 
-##### How to run:
+
+## 📁 Project Overview
+
+- **Implemented Operations**:
+  - Merge Join (`R ⋈ S`)
+  - Union (`R ∪ S`)
+  - Intersection (`R ∩ S`)
+  - Difference (`R − S`)
+  - Group-By with Aggregation (Σ over value column)
+
+- **Primary File**:
+  - `main.cpp`: All core logic and file-based algorithms
+
+- **Input Files**:
+  - `R_sorted.tsv`: Relation `R`, sorted by key (column 1)
+  - `S_sorted.tsv`: Relation `S`, sorted by key (column 1)
+  - `R.tsv`: Unsorted `R`, used for group-by
+
+- **Output Files**:
+  - `RjoinS.tsv`, `RunionS.tsv`, `RintersectionS.tsv`, `RdifferenceS.tsv`, `Rgroupby.tsv`
+
+## 🔧 Compilation
 
 ```bash
 g++ main.cpp
 ./a.out R_sorted.tsv S_sorted.tsv R.tsv
 ```
 
+## 🧠 Operations Overview
+
 ---
+⚠️ This program assumes that `R_sorted.tsv` and `S_sorted.tsv` are pre-sorted by key.
 
-#### Merge-join:
+### 1️⃣ Merge Join
 
-We read the 2 input files line by line, making only one pass through each one according to the assignment requirements.
+Performs a **merge join** between `R` and `S` on their common key.
 
-At the beginning, we read the first line from both files.
+- ✅ Efficient on sorted files  
+- ✅ Handles multiple matching keys (many-to-many)  
+- 🧠 Uses buffered approach for S-side matches
 
-* If the key in the record from file r_sorted is lexicographically smaller than the key in the record from file s_sorted, we move to the next record in r_sorted while keeping the same record from s_sorted.
-
-* If the key in the record from file r_sorted is lexicographically greater than the key in the record from file s_sorted, we move to the next record in s_sorted while keeping the same record from r_sorted.
-
-* If the key in the record from file r_sorted matches lexicographically the key in the record from file s_sorted, then:
-  
-  * As long as the records in file s_sorted have the same key as the record in file r_sorted, we add those records to the buffer.
-  
-  * As soon as the keys of the s_sorted records no longer match the key from r_sorted, we perform the merge-join of the r_sorted key with all s_sorted records in the buffer.
-  
-  * If file r_sorted has more than one record with that same key that matched with s_sorted, we perform merge-join again with all records from the s buffer.
-  
-  * Finally, we clear the buffer and keep the maximum size it reached so far.
-
-There are also comments in the code for more implementation details.
+Output: `RjoinS.tsv`
 
 ---
 
-#### Union:
+### 2️⃣ Union
 
-We read the 2 input files line by line, making only one pass through each one according to the assignment requirements.
+Computes the **set union** of `R` and `S`, removing duplicates.
 
-At the beginning, we read the first line from both files.
+- ✅ Assumes both inputs are sorted  
+- ✅ Skips duplicates via previous-line tracking
 
-* If both files have records:
-  
-  * If the record from r_sorted is lexicographically smaller than the one from s_sorted, we write the r_sorted record to the output file and move forward only in r_sorted.
-  
-  * If the record from r_sorted is lexicographically greater than the one from s_sorted, we write the s_sorted record to the output file and move forward only in s_sorted.
-  
-  * If the records match, we write the common record only once and move forward in both files.
-
-* If only r_sorted has remaining records and s_sorted is either finished or initially empty, we write all remaining records from r_sorted to the output file.
-
-* If only s_sorted has remaining records and r_sorted is either finished or initially empty, we write all remaining records from s_sorted to the output file.
-
-To ensure no duplicates in the output file, before writing a record, we check if it matches the last record written, and if so, we ignore it. Since the input files are sorted, all duplicates will appear sequentially and this check is sufficient.
+Output: `RunionS.tsv`
 
 ---
 
-#### Intersection:
+### 3️⃣ Intersection
 
-We read the 2 input files line by line, making only one pass through each one according to the assignment requirements.
+Finds records **common to both** `R` and `S`.
 
-At the beginning, we read the first line from both files.
+- ✅ Assumes sorted input  
+- ✅ Eliminates duplicate matches
 
-- If both files have records:
-  
-  - If the record from r_sorted is lexicographically smaller than the one from s_sorted, we move forward in r_sorted and write nothing.
-  
-  - If the record from r_sorted is lexicographically greater than the one from s_sorted, we move forward in s_sorted and write nothing.
-  
-  - If the records match, we write the common record only once and move forward in both files.
-
-To ensure no duplicates in the output file, before writing a record, we check if it matches the last record written, and if so, we ignore it. Since the input files are sorted, all duplicates will appear sequentially and this check is sufficient.
+Output: `RintersectionS.tsv`
 
 ---
 
-#### Difference (R_sorted - S_sorted):
+### 4️⃣ Difference (R − S)
 
-We read the 2 input files line by line, making only one pass through each one according to the assignment requirements.
+Returns records that exist in `R` but **not in** `S`.
 
-At the beginning, we read the first line from both files.
+- ✅ Assumes sorted input  
+- ✅ Eliminates duplicates in output
 
-- While r_sorted still has records:
-  
-  - If s_sorted has no records at this point or the r_sorted record is lexicographically smaller than the one in s_sorted, we write the r_sorted record to the output file and move forward in r_sorted.
-  
-  - If the r_sorted record is lexicographically greater than the one in s_sorted, we move forward in r_sorted.
-  
-  - If the records are the same in both files, we move forward in both files.
-
-To ensure no duplicates in the output file, before writing a record, we check if it matches the last record written, and if so, we ignore it. Since the input files are sorted, all duplicates will appear sequentially and this check is sufficient.
+Output: `RdifferenceS.tsv`
 
 ---
 
-#### RgroupBy with Aggregation:
+### 5️⃣ Group By + Aggregation
 
-We create a struct named `Record` in order to store and manage the records of file R efficiently.
+Groups records in `R` by key (column 1) and **sums** values in column 2.
 
-We create a list that contains all records from file R.tsv, with each `Record` representing one entry.
+- ✅ Uses recursive **merge sort with aggregation**  
+- ✅ Works efficiently in-memory
 
-We execute the merge sort algorithm on the elements of this list, and in the end, we write the resulting records to the output file.
+Output: `Rgroupby.tsv`
 
-The implementation of the mergeSort algorithm is exactly the same as the standard one, with the only difference being that when merging the sorted lists, in the case of a tie (i.e., same key), a new `Record` is created. The key of the new object remains the same, while the second field is the sum of the corresponding fields of the two elements, which is why the function is named `merge_with_aggregation`.
+## 📊 Internal Record Format
 
-All other steps of the code follow the logic of standard merge sort.
+Each row is modeled using the following `Record` structure:
 
----# complex-data-management
+```cpp
+struct Record {
+    std::string column_1;  // key
+    int column_2;          // value
+};
+```
+
+## ⏱️ Performance
+
+All operations (except group-by) are implemented using **streaming algorithms** that process files line-by-line **without loading them entirely into memory**.
+
+| Operation         | Complexity (Approx.)      | Notes                                         |
+|------------------|---------------------------|-----------------------------------------------|
+| Merge Join       | O(n + m)                  | Linear scan of sorted R and S (fully streamed)|
+| Union / Intersect| O(n + m)                  | Single-pass merge, no memory accumulation     |
+| Difference       | O(n + m)                  | Streamed difference computation               |
+| Group By + Sum   | O(n log n)                | Uses merge sort with aggregation (in-memory)  |
+
+✅ Highly scalable for large input files due to minimal memory usage  
+✅ Only the **group-by operation** loads records into memory for sorting  
+
+## 📄 Output Details
+
+Each result is written to a separate file:
+
+| File Name           | Contents                                |
+|---------------------|------------------------------------------|
+| `RjoinS.tsv`        | Joined tuples on common key              |
+| `RunionS.tsv`       | All unique tuples from R and S           |
+| `RintersectionS.tsv`| Tuples common to both R and S            |
+| `RdifferenceS.tsv`  | Tuples in R that do not appear in S      |
+| `Rgroupby.tsv`      | Sum of values grouped by key in R        |
+
+All output files are **tab-separated** and can be inspected or used in downstream processing.
+
+---
+## 👤 Author
+
+> GitHub: [xrddev](https://github.com/xrddev)
+
+
+## 📝 License
+
+Released under the [MIT License](LICENSE). Originally built as part of a university project.
+

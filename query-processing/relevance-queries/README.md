@@ -1,4 +1,4 @@
-# 📊 Transaction Relevance Scoring in C++
+# 📊 Transaction Relevance Scoring Query Processing in C++
 
 This project implements and compares **two relevance-based query processing methods** for transaction datasets, written in modern C++. It focuses on ranking transactions in order of their relevance to user queries using a weighting mechanism based on item rarity (Transaction Rarity Factor, or TRF).
 
