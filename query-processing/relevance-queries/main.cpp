@@ -25,6 +25,11 @@
  * - TRF Weights: Stores rarity-based weights for each item
  * - Query Processing: Both naive and index-based methods for query evaluation
  * - Result Ranking: Scores and sorts transactions by relevance to queries
+ *
+ *
+ * @author xrddev
+ * @date 2025-05-30
+ *
  **/
 
 
